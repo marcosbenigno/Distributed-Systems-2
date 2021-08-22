@@ -17,15 +17,14 @@ struct lock {
     std::atomic_flag held = ATOMIC_FLAG_INIT;
 };
 
-int8_t * dado;
-int sum = 0;
+int8_t * array;
+int soma = 0;
 int nums;
 struct lock lock;
 
 struct Intervalo {
-    int myInit;
-    int myEnd;
-    struct lock * lock;
+    int inicio;
+    int fim;
 };
 
 void acquire(struct lock * lock) {
@@ -56,27 +55,27 @@ int8_t * createArray(int nums) {
     return array;
 }
 
-struct Intervalo * createIntervalos(int num_threads, int nums) {
+struct Intervalo * createIntervalos(int numeroDeThreads, int nums) {
     //funcao que calcula o intervalo do array a ser calculado por cada thread
-    struct Intervalo * intervalos = (struct Intervalo * ) malloc(num_threads * sizeof(struct Intervalo));
-    int numsPorThread = nums / num_threads;
-    int currentInit = 0;
+    struct Intervalo * intervalos = (struct Intervalo * ) malloc(numeroDeThreads * sizeof(struct Intervalo));
+    int numsPorThread = nums / numeroDeThreads;
+    int inicioAtual = 0;
     //esse ternario e pro caso de nem todos os numeros se distribuem uniformemente no numero de threads requeridos
-    for (int i = 0; i < (nums % num_threads == 0 ? num_threads : num_threads - 1); i++) {
+    for (int i = 0; i < (nums % numeroDeThreads == 0 ? numeroDeThreads : numeroDeThreads - 1); i++) {
         struct Intervalo intervalo;
-        intervalo.myInit = currentInit;
-        currentInit = currentInit + numsPorThread;
-        intervalo.myEnd = currentInit;
+        intervalo.inicio = inicioAtual;
+        inicioAtual = inicioAtual + numsPorThread;
+        intervalo.fim = inicioAtual;
         intervalos[i] = intervalo;
 
     }
 
     //tratando a intervalo nao calculada controlada pelo ternario
-    if ((nums % num_threads) != 0) {
+    if ((nums % numeroDeThreads) != 0) {
         struct Intervalo intervalo;
-        intervalo.myInit = currentInit;
-        intervalo.myEnd = nums;
-        intervalos[num_threads - 1] = intervalo;
+        intervalo.inicio = inicioAtual;
+        intervalo.fim = nums;
+        intervalos[numeroDeThreads - 1] = intervalo;
     }
     return intervalos;
 }
@@ -87,13 +86,13 @@ void * thread_func(void * intervalo) {
 
     int a = 0;
 
-    for (int i = vars -> myInit; i < vars -> myEnd; i++) {
+    for (int i = vars -> inicio; i < vars -> fim; i++) {
 
-        a += dado[i];
+        a += array[i];
     }
 
     acquire( & lock);
-    sum += a;
+    soma += a;
     release( & lock);
 }
 
@@ -101,36 +100,36 @@ int main() {
     printf("Quantos numeros devem ser somados?\n");
     scanf("%d", & nums);
 
-    dado = createArray(nums);
-    int num_threads;
+    array = createArray(nums);
+    int numeroDeThreads;
     printf("Quantas threads serao utilizadas para a soma?\n");
-    scanf("%d", & num_threads);
+    scanf("%d", & numeroDeThreads);
 
-    pthread_t threads[num_threads];
+    pthread_t threads[numeroDeThreads];
     struct lock * lock;
     //criacao de array com o intervalo do array a ser somado por cada thread
-    struct Intervalo * intervalos = createIntervalos(num_threads, nums);
+    struct Intervalo * intervalos = createIntervalos(numeroDeThreads, nums);
     clock_t start = clock();
     //criacao de threads
-    for (int i = 0; i < num_threads; i++) {
+    for (int i = 0; i < numeroDeThreads; i++) {
         pthread_create( & (threads[i]), NULL, & thread_func, & intervalos[i]);
 
     }
 
-    for (int i = 0; i < num_threads; i++) {
+    for (int i = 0; i < numeroDeThreads; i++) {
         pthread_join(threads[i], NULL);
     }
     clock_t stop = clock();
 
-    printf("\nSoma por threads: %d\n", sum);
-    double elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
-    printf("Tempo de execucao (ms): %f", elapsed);
+    printf("\nSoma por threads: %d\n", soma);
+    double tempo = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
+    printf("Tempo de execucao (ms): %f", tempo);
 
     //linhas abaixo calculam o valor da soma do array para confererencia de valores
     int localAc = 0;
     int i = 0;
     while (i < nums) {
-        localAc += dado[i];
+        localAc += array[i];
         i++;
 
     }

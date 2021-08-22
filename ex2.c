@@ -20,31 +20,31 @@ int numsConsumidos = 0;
 //struct buffer com array limitado no estilo fifo
 
 struct buffer {
-    int * data;
+    int * array;
     int N;
-    int currentRemovePosition;
-    int currentAddPosition;
-    int elementsInUse = 0;
-    bool isFull = false;
-    bool isEmpty = true;
+    int posicaoARemover;
+    int posicaoAAdicionar;
+    int elementosEmUso = 0;
+    bool estaCheio = false;
+    bool estaVazio = true;
 };
 
 struct buffer * sharedBuffer;
 
 void inserirBuffer(int numero, struct buffer * buff) {
     //insere no buffer
-    if (!buff -> isFull) {
-        printf("\nInserindo %d na posicao %d\n", numero, buff -> currentAddPosition);
-        buff -> data[buff -> currentAddPosition] = numero;
-        buff -> elementsInUse = buff -> elementsInUse + 1;
-        buff -> isEmpty = false;
-        if (buff -> currentAddPosition == buff -> N - 1) {
-            buff -> currentAddPosition = 0;
+    if (!buff -> estaCheio) {
+        printf("\nInserindo %d na posicao %d\n", numero, buff -> posicaoAAdicionar);
+        buff -> array[buff -> posicaoAAdicionar] = numero;
+        buff -> elementosEmUso = buff -> elementosEmUso + 1;
+        buff -> estaVazio = false;
+        if (buff -> posicaoAAdicionar == buff -> N - 1) {
+            buff -> posicaoAAdicionar = 0;
         } else {
-            buff -> currentAddPosition = buff -> currentAddPosition + 1;
+            buff -> posicaoAAdicionar = buff -> posicaoAAdicionar + 1;
         }
-        if (buff -> elementsInUse == buff -> N) {
-            buff -> isFull = true;
+        if (buff -> elementosEmUso == buff -> N) {
+            buff -> estaCheio = true;
         }
     }
 }
@@ -60,19 +60,19 @@ bool ePrimo(int n) {
 
 int removerBuffer(struct buffer * buff) {
     //remove de buffer
-    if (!buff -> isEmpty) {
-        printf("\nRemovendo %d de posicao: %d\n", buff -> data[buff -> currentRemovePosition], buff -> currentRemovePosition);
-        int removido = buff -> data[buff -> currentRemovePosition];
-        buff -> data[buff -> currentRemovePosition] = 0;
-        buff -> elementsInUse = buff -> elementsInUse - 1;
-        buff -> isFull = false;
-        if (buff -> currentRemovePosition == buff -> N - 1) {
-            buff -> currentRemovePosition = 0;
+    if (!buff -> estaVazio) {
+        printf("\nRemovendo %d de posicao: %d\n", buff -> array[buff -> posicaoARemover], buff -> posicaoARemover);
+        int removido = buff -> array[buff -> posicaoARemover];
+        buff -> array[buff -> posicaoARemover] = 0;
+        buff -> elementosEmUso = buff -> elementosEmUso - 1;
+        buff -> estaCheio = false;
+        if (buff -> posicaoARemover == buff -> N - 1) {
+            buff -> posicaoARemover = 0;
         } else {
-            buff -> currentRemovePosition = buff -> currentRemovePosition + 1;
+            buff -> posicaoARemover = buff -> posicaoARemover + 1;
         }
-        if (buff -> elementsInUse == 0) {
-            buff -> isEmpty = true;
+        if (buff -> elementosEmUso == 0) {
+            buff -> estaVazio = true;
         }
         numsConsumidos += 1;
         return removido;
@@ -83,12 +83,12 @@ int removerBuffer(struct buffer * buff) {
 struct buffer * createBuffer(int N) {
     //funcao cria buffer
     struct buffer * buff;
-    buff -> currentRemovePosition = 0;
-    buff -> currentAddPosition = 0;
+    buff -> posicaoARemover = 0;
+    buff -> posicaoAAdicionar = 0;
     buff -> N = N;
-    buff -> data = (int * ) malloc(N * sizeof(int));
+    buff -> array = (int * ) malloc(N * sizeof(int));
     for (int i = 0; i < N; i++) {
-        buff -> data[i] = 0;
+        buff -> array[i] = 0;
     }
     return buff;
 }

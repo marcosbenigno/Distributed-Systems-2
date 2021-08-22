@@ -80,13 +80,13 @@ struct Intervalo * createIntervalos(int numeroDeThreads, int nums) {
     return intervalos;
 }
 
-void * thread_func(void * intervalo) {
+void * somar(void * intervalo) {
     //funcao a ser rodada por cada thread
-    struct Intervalo * vars = (Intervalo * ) intervalo;
+    struct Intervalo * argumentos = (Intervalo * ) intervalo;
 
     int a = 0;
 
-    for (int i = vars -> inicio; i < vars -> fim; i++) {
+    for (int i = argumentos -> inicio; i < argumentos -> fim; i++) {
 
         a += array[i];
     }
@@ -112,7 +112,7 @@ int main() {
     clock_t start = clock();
     //criacao de threads
     for (int i = 0; i < numeroDeThreads; i++) {
-        pthread_create( & (threads[i]), NULL, & thread_func, & intervalos[i]);
+        pthread_create( & (threads[i]), NULL, & somar, & intervalos[i]);
 
     }
 
